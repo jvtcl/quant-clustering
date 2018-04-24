@@ -1,0 +1,9 @@
+{
+    "path" : "~/projects/quant-clustering",
+    "sortOrder" : [
+        {
+            "ascending" : true,
+            "columnIndex" : 2
+        }
+    ]
+}

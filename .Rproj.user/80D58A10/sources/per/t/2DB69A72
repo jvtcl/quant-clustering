@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1524583807355.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "4062241551",
+    "id" : "2DB69A72",
+    "lastKnownWriteTime" : 1524584782,
+    "last_content_update" : 1524584782862,
+    "path" : "~/projects/quant-clustering/demo.R",
+    "project_path" : "demo.R",
+    "properties" : {
+        "cursorPosition" : "100,50",
+        "scrollLine" : "80"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
