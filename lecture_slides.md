@@ -30,7 +30,7 @@ Introduction
 Cluster Analysis vs. an Atlas
 ===
 - Traditionally geographers would explore multivariate spatial data by producing an atlas. 
-- Each page of the atlas would describe a single variable (e.g. income, homeownership, third-wave coffee shop density, dog parks per capita...).
+- Each page of the atlas would describe a single variable (e.g. income, homeownership, third-wave coffee shop density, dog salons per capita...).
 - We could to identify “gentrifying” neighborhoods by cross referencing maps.
 
 Cluster Analysis vs. an Atlas
@@ -44,7 +44,7 @@ Cluster Analysis vs. an Atlas
 - Cluster Analysis is a set of statistical techniques to let people “discover” groups in data. 
 - What you could do visually in 2 or 3 dimensions cluster analysis does in high dimensions.
 - Each data point is labeled by group membership. 
-- Each group has an **attribute profile**...kind of like "dog-earing" a set of atlas pages that best describe places in the group.
+- Each cluster has an **attribute profile**...kind of like "bookmarking" a set of atlas pages that best describe places in that cluster.
 
 Example
 ===
@@ -79,22 +79,22 @@ We can also use cluster analysis to describe how places change over time:
 ![plot of chunk unnamed-chunk-4](figs/03_processes.png)
 </center>
 
-Doing Cluster Analysis: Continuous Data
+Clusters in Attribute Space
 ===
 
 - Clusters are sometimes visually obvious in high-density regions of the "attribute space".
-- High-density regions = lots of mutual neighbors.
-- We can also describe each group member as being mutually closer to some "exemplar" or "centroid" than any other. 
+- High-density regions = lots of mutual nearest-neighbors.
+- We can also describe each cluster's members as being closer to some "exemplar" or "centroid" than any other. 
 
 ***
 
 ![plot of chunk unnamed-chunk-5](lecture_slides-figure/unnamed-chunk-5-1.png)
 
-Clustering around centroids: K-Means
+Clustering Around Centroids: K-Means
 ===
 
 1. Randomly place *k* number of points (centroids) in the attribute space. 
-2. Each dot (obseravation) is assigned to the nearest centroid.
+2. Each dot (observation) is assigned to the nearest centroid.
 3. Centroid is recalculated as the mean of the points assigned to it. 
 4. Repeat steps 2 - 3 until "convergence" (centroids stop moving).
 
@@ -129,9 +129,9 @@ kmclust = kmeans(clust_dat_z, centers = 7)$cluster # perform k-means and extract
 Clustering by (Dis)similarity
 ===
 - A **dissimilarity matrix** is like a "mileage chart" for our data.
-- An **affinity matrix** would be like inverse of a mileage chart (i.e. subtracting every distance from the max distance).
+- An **affinity matrix** would be like inverse of a mileage chart (i.e. measuring _proximity_ by subtracting every distance from the max distance).
 - Both measures support different clustering tasks.
-  - e.g. clustering hierarchically vs. on nearest-neighbors
+  - e.g. hierarchical vs. nearest-neighbors clustering
 
 *** 
 
@@ -150,7 +150,7 @@ Hierarchical Clustering
   - The "leaves" describe individual observations.
   - The "stems" describe more specific clusters.
   - The "branches" describe more general clusters.
-- Clusters are recovered by "cutting" the dendrogram at a desired *k*. 
+- Clusters are recovered by "cutting" the dendrogram at a desired `k` or height. 
   
 ***
 ![plot of chunk unnamed-chunk-10](figs/WPGMA_Dendrogram_5S_data.svg)
@@ -167,7 +167,7 @@ Hierarchical Clustering: Linking/Sorting Strategies
   
 A Dendrogram of Denver Tracts
 ===
-- Generate euclidean distance matrix using R's `dist` function
+- Generate a euclidean distance matrix using R's `dist` function.
 - Generate a dendrogram from the distance matrix using R's `hclust` function.
 - Use the _Ward_ linkage method (minimize within-cluster variance).
 
@@ -190,13 +190,13 @@ A Dendrogram of Denver Tracts
 ![plot of chunk unnamed-chunk-12](lecture_slides-figure/unnamed-chunk-12-1.png)
 </center>
 
-Finding a suitable 'k' 
+Finding a Suitable k 
 ===
 - Clusters should be **internally consistent** and **well separated**.
 - Often useful to consider variance-based and separation-based criteria.
 - Can iterate *k* groups and measure each of these criteria to find a "best" solution.
 
-Finding a suitable 'k': Variance-Based Criteria
+Finding a Suitable k: Variance-Based Criteria
 ===
 <center>
 $$GOF = \frac{BSS}{TSS}$$
@@ -208,12 +208,12 @@ $$TSS = BSS + WSS$$
 
 ***
 
-Sometimes called **"Goodness of Variance Fit"**.
-- **TSS**: sum of squared distances from data centroid
-- **BSS**: sum of squared distances between all group centroids and the data centroid
-- **WSS**: sum of squared distances between all group members and their centroid
+Sometimes called **Goodness of Variance Fit (GOF)**.
+- **Total Sum of Squares (TSS)**: sum of squared distances from data centroid
+- **Between Sum of Squares (BSS)**: sum of squared distances between all group centroids and the data centroid
+- **Within Sum of Squares (WSS)**: sum of squared distances between all group members and their centroid
 
-Finding a suitable 'k': Variance-Based Criteria
+Finding a Suitable k: Variance-Based Criteria
 ===
 <center>
 $$GOF = \frac{BSS}{TSS}$$
@@ -226,14 +226,15 @@ $$TSS = BSS + WSS$$
 ***
 
 Look familiar? 
-- This is kind of like an R^2 diagnostic for OLS regression.
-- Instead of a "line of best fit" we have cluster centroids/labels.
-- The "explained" part (BSS) tells us how distinct the cluster centroids are.
-- The "unexplained" part (WSS) tells us how much observations vary about their centroid.
+- This is kind of like an R^2 diagnostic for clustering.
+- Instead of a "line of best fit", we have cluster centroids.
+- Instead of "fitted values", we have cluster labels.
+- The "explained" part (BSS) tells us how distinct from data centroid the cluster centroids are.
+- The "unexplained" part (WSS) tells us how much observations vary about their own centroid.
 
-Finding a suitable 'k': Separation-Based Criteria
+Finding a Suitable k: Separation-Based Criteria
 ===
-- Clusters should inhabit "high density" portions of the attribute space.
+- Clusters should be _well separated_: they should inhabit their own "high density" portions of the attribute space.
 - Information provided by each cluster should be distinct, and shared as little as possible with other clusters.
 - **Average Silhouette Width:** to what degree do clusters overlap?
   - 0 = high overlap
@@ -243,7 +244,7 @@ Finding a suitable 'k': Separation-Based Criteria
 Selecting k for Denver Tracts
 ===
 1. Specify a desired range of cluster numbers (here $k=3...10$).
-2. Cut the dendogram at each *k* and...
+2. Cut the dendogram at each `k` and...
   - Compute variance-based measure (Goodness of Variance Fit).
   - Compute separation-based measure (Average Silhouette Width in R library `cluster`).
 4. Compare the measures visually and identify an optimal solution.
@@ -272,7 +273,7 @@ sil = sapply(krange, function(k){
 })
 ```
 
-Selecting 'k' for Denver Tracts
+Selecting k for Denver Tracts
 ===
 
 <center>
@@ -329,7 +330,7 @@ Interrograting the Clusters
 Comparing the Denver Tract Clusters to an Outcome Measure
 ===
 <center>
-![plot of chunk unnamed-chunk-17](lecture_slides-figure/unnamed-chunk-17-1.png)
+<img src="lecture_slides-figure/unnamed-chunk-17-1.png" title="plot of chunk unnamed-chunk-17" alt="plot of chunk unnamed-chunk-17" style="display: block; margin: auto 0 auto auto;" />
 
 ***
 
@@ -357,16 +358,17 @@ _Tradeoff_: Sometimes these methods generate a lot of "singletons" or noise.
 Side Notes: Clustering Categorical Data
 ===
 - Useful for grouping e.g. survey responses.
-- "Model-based" clustering techniques like **Latent Class Analysis** (LCA).
-- Model parameters are determined using criteria similar to logistic regression (maximum likelihood).
-- Information-theoretic criteria (i.e. AIC, BIC) are used to find a suitable *k*
+- Uses "model-based" clustering techniques like **Latent Class Analysis** (LCA).
+- Model parameters are determined using criteria similar to logistic regression (i.e. maximum likelihood).
+- Information-theoretic criteria (i.e. AIC, BIC) are used to find a suitable `k`.
 
 Conclusion
 ===
-- Cluster analysis is useful to geographers because [xx].
-- Cluster analysis reveals that there is seldom a "one size fits all" view of place.
-- Research design depends on the _objectives_ of the research (i.e. knowledge discovery vs. confirmatory analysis):
-  - variable selection
-  - comparing cases
-  - clustering method
-  - interpretation
+- Cluster analysis provides geographers insight into latent conditions and processes in place.
+- However, there is seldom a "one size fits all" view of these phenomena.
+- Clustering design depends on the _objectives_ of the research (i.e. knowledge discovery vs. confirmatory analysis).
+- Careful attention should be paid to: 
+  - Variable selection
+  - Comparing cases
+  - Clustering method
+  - Interpretation
