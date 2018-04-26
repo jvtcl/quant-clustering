@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1524584863210.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "4D16590E",
+    "lastKnownWriteTime" : 1524691161,
+    "last_content_update" : 1524691161254,
+    "path" : "~/projects/quant-clustering/lecture_slides.Rpres",
+    "project_path" : "lecture_slides.Rpres",
+    "properties" : {
+        "cursorPosition" : "198,50",
+        "scrollLine" : "186"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_presentation"
+}

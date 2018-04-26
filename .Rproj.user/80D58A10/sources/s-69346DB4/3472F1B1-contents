@@ -1,0 +1,423 @@
+---
+title: "Linking Individuals to Hazards of Place Using High-Resolution Population Estimates"
+author: Joe Tuccillo and Seth Spielman | University of Colorado-Boulder
+output: ioslides_presentation
+widescreen: true
+smaller: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+knitr::knit_engines$set(python = reticulate::eng_python)
+library(knitr)
+library(ggplot2)
+library(reshape2)
+library(reticulate)
+library(rgdal)
+library(rgeos)
+library(plyr)
+# use_python('~/joe/anaconda2/bin')
+```
+
+
+## Introduction
+
+```{r, out.width='50%', eval = F}
+knitr::include_graphics('prizm_ex1.png')
+knitr::include_graphics('prizm_ex2.png')
+```
+
+- Social vulnerability metrics use  _aggregate population characteristics_ to assess how places are differentially vulnerable to a hazard.
+- Yet metrics often overlook how _individuals_ (people, households) in each place are also vulnerable. 
+- Metrics could more clearly guide place-specific hazard planning/response if they linked hazard impacts to individual traits.
+
+## Introduction
+
+Metrics could more clearly guide place-specific hazard planning/response if they linked hazard impacts to individual traits:
+
+<div class="centered">
+> **Urban Elders:** "...life is often an economic struggle. These communities have high concentrations of Hispanics and African-Americans, and tend to be downscale, with singles living in older apartment rentals."
+
+<font size="3"><center>(Source: Claritas PRIZM)</center></font>
+</div>
+
+## The Geographic-Demographic Tradeoff
+
+- Census data for vulnerability assessment has _high spatial resolution_ but low _demographic resolution_. 
+- The _ecological inference problem_ limits information that can be be drawn about individuals from a metric.
+
+## The Geographic-Demographic Tradeoff
+
+- Another data source provides a solution...
+- The **Public Use Microdata Sample (PUMS)** has high demographic resolution: it consists of census longform responses.  
+- However PUMS' spatial resolution is coarse: it is matched to large "Public Use Microdata Areas" (PUMAs). 
+- We overcome this problem by matching PUMS to small areas using statistical geo-location techniques (microsimulation).
+
+
+## Case Study: Hurricane Sandy, 2012
+
+<div class="columns-2">
+- **Target population:** _households_ in the Rockaway Peninsula in Queens, New York city. 
+- **Themes:** householder age, income, race/ethnicity, living arrangement, housing costs (mortgage), linguistic isolation; housing stock type and age
+
+```{r, out.width='90%'}
+knitr::include_graphics('nyc_puma.png')
+```
+
+</div>
+
+## Microdata Example
+
+<div class="columns-2">
+```{r microdata_example1}
+micro_ex = read.csv('microdata_example.csv')[,-1]
+micro_ex_pop = micro_ex[1,]
+t(micro_ex_pop)
+```
+</div>
+
+## Microsimulation: Allocating Microdata to Small Areas
+
+- **Objective:** Determine the best possible allocation of microdata design weights, supported by summary-level estimates.
+- P-MEDM method (Nagle et. al 2014): use nested summary level estimates (block groups and tracts) as supports.
+- Each resulting unit of population has a profile of traits linked to a survey response.
+
+## Example
+<div class="centered">
+```{r, fig.height = 3, fig.width = 10}
+mdx_sp = read.csv('microdata_example_spatial.csv')
+mdx_sp = mdx_sp[,-which(names(mdx_sp) == 'geometry')]
+mdx_sp = mdx_sp[complete.cases(mdx_sp),]
+
+bg_sp = readOGR('../../data', 'gz_2010_36_150_00_500k',verbose = F)
+bg_sp$GEO_ID = gsub('1500000US','',bg_sp$GEO_ID)
+bg_sp = bg_sp[bg_sp$GEO_ID %in% mdx_sp$GEO_ID,]
+
+bgf = fortify(bg_sp,region = 'GEO_ID')
+names(bgf)[which(names(bgf)=='id')] = 'GEO_ID'
+bgf = join(bgf, mdx_sp, by = 'GEO_ID')
+
+ggplot(bgf, aes(x = long, y = lat, group = group, fill = micro_ex_p0)) + 
+  geom_polygon(color = 'black') +
+  scale_fill_gradient2(mid = 'lightblue', high = 'navyblue') +
+  coord_equal() +
+  theme_bw() + 
+  labs(fill = 'Share of Total Pop.') +
+  ggtitle('Mortgaged Single-Family Homes Built Pre-1940\nwith a Minority Householder')
+```
+</div>
+
+## Finding Relational Structure in Microdata
+
+<div class="columns-2">
+
+- Manifold multi-dimensional scaling "embeds" the microdata in a lower-dimensional relational space. 
+- The "embedded space" preserves original similarities among populations.
+
+```{r, fig.height = 4, fig.width = 5.1}
+mds_results = read.csv('mds_results.csv')[,-1]
+mds_results$cluster=as.factor(mds_results$cluster)
+mds_results$ex1=as.factor(mds_results$ex1)
+mds_results$ex2=as.factor(mds_results$ex2)
+mds_results$ex3=as.factor(mds_results$ex3)
+mds_results$ex4=as.factor(mds_results$ex4)
+mds_results$ex5=as.factor(mds_results$ex5)
+mds_results$micro_ex=as.factor(mds_results$micro_ex)
+mds_results$micro_ex_p0=as.factor(mds_results$micro_ex_p0)
+
+ggplot(mds_results, aes(x = x, y = y)) +
+  geom_point(aes(size = popsize)) + 
+  theme_bw() + 
+  ggtitle('Microdata Responses in Embedded Space') +
+  labs(size = 'HHWT')
+  # theme(legend.position = 'none')
+```
+
+## Finding Relational Structure in Microdata
+
+<div class="columns-2">
+- Manifold multi-dimensional scaling "embeds" the microdata in a lower-dimensional relational space. 
+- The "embedded space" preserves original similarities among populations.
+- Key population traits are stored in high-density regions of the embedded space.
+
+```{r, fig.height = 4, fig.width = 5.1}
+## minority householder
+ggplot(mds_results, aes(x = x, y = y)) +
+  geom_point(aes(size = popsize)) + 
+  scale_alpha_discrete(range=c(0.1,1)) +
+  theme_bw() + 
+  ggtitle('Microdata Responses in Embedded Space') + 
+  labs(size = 'HHWT')
+  # theme(legend.position = 'none')
+```
+</div>
+
+
+## Finding Relational Structure in Microdata
+
+<div class="columns-2">
+- Manifold multi-dimensional scaling "embeds" the microdata in a lower-dimensional relational space. 
+- The "embedded space" preserves original similarities among populations.
+- Key population traits are stored in high-density regions of the embedded space.
+
+```{r, fig.height = 4, fig.width = 5.38}
+## minority householder
+ggplot(mds_results, aes(x = x, y = y, alpha = ex1)) +
+  geom_point(aes(size = popsize)) + 
+  scale_alpha_discrete(range=c(0.1,1)) +
+  theme_bw() + 
+  ggtitle('Microdata Responses in Embedded Space') + 
+  labs(alpha = 'Minority\nHouseholder', size = 'HHWT')
+  # theme(legend.position = 'none')
+```
+</div>
+
+
+## Finding Relational Structure in Microdata
+
+<div class="columns-2">
+- Manifold multi-dimensional scaling "embeds" the microdata in a lower-dimensional relational space. 
+- The "embedded space" preserves original similarities among populations.
+- Key population traits are stored in high-density regions of the embedded space.
+</font>
+
+```{r, fig.height = 4, fig.width = 5.65}
+# minority householder, owner-occupied home
+ggplot(mds_results, aes(x = x, y = y, alpha = ex2)) +
+  geom_point(aes(size = popsize)) + 
+  scale_alpha_discrete(range=c(0.1,1)) +
+  theme_bw() + 
+  ggtitle('Microdata Responses in Embedded Space') + 
+  labs(alpha = 'Minority\nHouseholder,\nOwner-Occupied', size = 'HHWT')
+  # theme(legend.position = 'none')
+```
+
+</div>
+
+## Finding Relational Structure in Microdata
+
+<div class="columns-2">
+- Manifold multi-dimensional scaling "embeds" the microdata in a lower-dimensional relational space. 
+- The "embedded space" preserves original similarities among populations.
+- Key population traits are stored in high-density regions of the embedded space.
+</font>
+
+```{r, fig.height = 4, fig.width = 5.65}
+# minority householder, owner-occupied home, single-family residential
+ggplot(mds_results, aes(x = x, y = y, alpha = ex3)) +
+  geom_point(aes(size = popsize)) + 
+  scale_alpha_discrete(range=c(0.1,1)) +
+  theme_bw() + 
+  ggtitle('Microdata Responses in Embedded Space') + 
+  labs(alpha = 'Minority\nHouseholder,\nOwner-Occupied,\nSingle-Unit Home', size = 'HHWT')
+  # theme(legend.position = 'none')
+```
+
+</div>
+
+## Finding Relational Structure in Microdata
+
+<div class="columns-2">
+- Manifold multi-dimensional scaling "embeds" the microdata in a lower-dimensional relational space. 
+- The "embedded space" preserves original similarities among populations.
+- Key population traits are stored in high-density regions of the embedded space.
+</font>
+
+```{r, fig.height = 4, fig.width = 5.65}
+# minority householder, owner-occupied home, single-family residential, built pre-1940
+ggplot(mds_results, aes(x = x, y = y, alpha = ex4)) +
+  geom_point(aes(size = popsize)) + 
+  scale_alpha_discrete(range=c(0.1,1)) +
+  theme_bw() + 
+  ggtitle('Microdata Responses in Embedded Space') +
+  labs(alpha = 'Minority\nHouseholder,\nOwner-Occupied,\nSingle-Unit Home,\nBuilt Pre-1940', size = 'HHWT')
+  # theme(legend.position = 'none')
+```
+
+</div>
+
+## Finding Relational Structure in Microdata
+
+<div class="columns-2">
+- Manifold multi-dimensional scaling "embeds" the microdata in a lower-dimensional relational space. 
+- The "embedded space" preserves original similarities among populations.
+- Key population traits are stored in high-density regions of the embedded space.
+</font>
+
+```{r, fig.height = 4, fig.width = 5.65}
+# minority householder, owner-occupied home, single-family residential, built pre-1940, owned with a mortgage
+ggplot(mds_results, aes(x = x, y = y, alpha = ex5)) +
+  geom_point(aes(size = popsize)) + 
+  scale_alpha_discrete(range=c(0.1,1)) +
+  theme_bw() + 
+  ggtitle('Microdata Responses in Embedded Space') +
+  labs(alpha = 'Minority\nHouseholder,\nOwner-Occupied,\nSingle-Unit Home,\nBuilt Pre-1940,\nMortgaged', size = 'HHWT')
+  # theme(legend.position = 'none')
+```
+
+</div>
+
+
+## Comparing Locations by Population Structure
+<div class="centered">
+- Each place has a population "footprint" in the embedded space.
+- Clusters of places can be identified via similar "footprints":
+
+```{r footprint_example2}
+r_mds_results_cl = read.csv('rock_cluster_example_agg.csv')[,-1]
+target_loc = unique(r_mds_results_cl$GEOID)[5]
+footdf = r_mds_results_cl[r_mds_results_cl$GEOID==target_loc,]
+
+min_x = min(r_mds_results_cl$x)
+min_y = min(r_mds_results_cl$y) 
+max_x = max(r_mds_results_cl$x)
+max_y = max(r_mds_results_cl$y)
+
+r_mds_results_cl = read.csv('rock_cluster_example_agg.csv')[,-1]
+ggplot(r_mds_results_cl, aes(x = x, y = y)) +
+ geom_point(aes(size = popsize)) +
+ facet_wrap(~factor(GEOID)) +
+  xlim(min_x, max_x) + 
+  ylim(min_y, max_y) +
+  scale_size_area() + 
+  theme_bw() +
+  labs(colour = NULL)
+  # theme(legend.position = 'none')
+```
+
+
+</div>
+
+## Comparing Locations by Population Structure
+<div class="centered">
+```{r bg_clust_map}
+library(ggplot2)
+library(reshape2)
+library(rgdal)
+library(rgeos)
+library(plyr)
+
+bg = read.csv('rock_bg_sub.csv')
+bg = bg[,-which(names(bg) == 'geometry')]
+
+bg_sp = readOGR('../../data/', 'gz_2010_36_150_00_500k',verbose = F)
+bg_sp$GEO_ID = gsub('1500000US','',bg_sp$GEO_ID)
+bg_sp = bg_sp[bg_sp$GEO_ID %in% bg$GEO_ID,]
+
+bgf = fortify(bg_sp,region = 'GEO_ID')
+names(bgf)[which(names(bgf)=='id')] = 'GEO_ID'
+bgf = join(bgf, bg, by = 'GEO_ID')
+
+bgf$cluster = factor(bgf$cluster, levels = 0:max(bgf$cluster))
+
+# location emphasis
+bgf$emph1 = factor(ifelse(bgf$cluster == 5, 1, 0))
+bgf$emph2 = factor(ifelse(bgf$clust_sv == 52, 1, 0))
+
+bg_clust_map = ggplot(bgf, aes(x = long, y = lat, group = group, fill = cluster)) + 
+  geom_polygon(color = 'black') +
+  scale_fill_brewer(type = 'qual', palette = 'Set1') +
+  coord_equal() +
+  theme_bw() + 
+  theme(legend.position = 'none') +
+  ggtitle('Block Group Clusters')
+bg_clust_map
+```
+</div>
+
+## Comparing Locations by Population Structure
+<div class="centered">
+```{r}
+ggplot(bgf, aes(x = long, y = lat, group = group, fill = cluster, alpha = emph1, size = emph1)) + 
+  geom_polygon(color = 'black') +
+  scale_fill_brewer(type = 'qual', palette = 'Set1') +
+  scale_alpha_discrete(range=c(0.3,1)) + 
+  scale_size_discrete(range=c(0.5,1)) +
+  coord_equal() +
+  theme_bw() + 
+  theme(legend.position = 'none') +
+  ggtitle('Block Group Clusters')
+```
+</div>
+
+<div class="notes">
+```{r, out.width='90%'}
+knitr::include_graphics('averne.JPG')
+```
+</div>
+
+## Comparison of High and Low-Resolution Metrics
+
+<div class="centered">
+Interpreting **Low-Resolution** characteristics, we might assume households in these areas were largely sensitive during Sandy based on racial/ethnic minority householders, mortgage status, and older housing stock:
+
+```{r avp_sv_plot}
+avp = read.csv('rock_avp.csv')
+avp = melt(avp, id.vars = 'cluster')
+
+ggplot(avp[avp$cluster==5,], aes(x = variable, y = value))+
+  geom_bar(stat = 'identity', fill = 'navyblue', colour = 'black') + 
+  theme_bw() +
+  theme(axis.text.x = element_text(angle=45,hjust=1))
+```
+</div>
+
+
+## Comparison of High and Low-Resolution Metrics
+<div class="centered">
+A **High-Resolution** interpretation shows that things are more complex: 
+
+```{r heatprof, fig.height = 4, fig.width = 6}
+heatprof = read.csv('heatprof_test.csv')[,-1]
+
+# simplify variables
+sv_vars = c('r_Non_White', 'hholder_65_over', 'hhinc_below_25k', 'tenr_Rent', 'nfam_alone', 'built_1939_earlier', 'lingisol', 'own_w_mtg', 'hholder_income_alt')
+heatprof = heatprof[heatprof$variable %in% sv_vars,]
+
+heatprof$cluster = as.factor(heatprof$cluster)
+var_order = unique(heatprof$variable)
+
+# heatprof = melt(heatprof)
+heatprof$variable = factor(heatprof$variable, levels = var_order)
+
+ggplot(heatprof, aes(x = variable, y = cluster)) + 
+  stat_bin2d(aes(fill = value),colour='black') + 
+  scale_fill_gradient2(low = 'white', high='navyblue') +
+  theme(axis.text.x = element_text(angle=45,hjust=1)) +
+  theme(panel.background = element_blank()) +
+  xlab('Variable') + 
+  ylab('Group')
+```
+</div>
+
+<div class="notes">
+
+- True to the "low resolution" profile, households in these areas during Sandy consistently had minority householders, usually with mortages their on homes... 
+- ...but _renter-occupied households_ were also present, with reduced/more variable income levels. 
+- Older housing stock was typically occupied by households earning $50k or more per year, sometimes elderly householders with supplemental incomes.
+
+
+</div>
+
+
+## Discussion    
+
+<div class="columns-2">
+
+- High-resolution population data challenges our "low-resolution" understanding of places' social composition.
+- It also buries us in data.
+- How should vulnerability metrics balance _generalizability_ with _completeness_?
+
+```{r, fig.width = 5, fig.height = 4}
+r_mds_results_cl = read.csv('rock_cluster_example.csv')[,-1]
+kde_plot = ggplot(r_mds_results_cl, aes(x = vx, y = vy, color = density)) +
+ geom_point(size = 0.8) +
+scale_colour_gradient2(low='yellow', mid = 'orange', high='red') +
+  xlim(min_x, max_x) + 
+  ylim(min_y, max_y) + 
+  theme_bw() + 
+  ggtitle('Composite Population Footprint for Cluster 5')
+kde_plot
+```
+
+</div>

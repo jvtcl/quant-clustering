@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1524690361997.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "3472F1B1",
+    "lastKnownWriteTime" : 1523570818,
+    "last_content_update" : 1523570818,
+    "path" : "~/projects/nyc-sandy-diss/demo/aag18/jt_aag_rev.Rmd",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "40,0",
+        "scrollLine" : "29"
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}
