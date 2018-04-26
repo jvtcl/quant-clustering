@@ -19,7 +19,7 @@ Introduction
 ===
 - Classification involves using data to group places, events, things into types.
 - In geography we are often interested classifying places into regions. 
-- A "gentrifying neighborhood” evokes multidimensional picture of a place. 
+- A "gentrifying neighborhood” evokes a multidimensional picture of a place. 
 
 Cluster Analysis vs. an Atlas
 ===

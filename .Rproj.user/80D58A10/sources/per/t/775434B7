@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1524746494393.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1491962678",
+    "id" : "775434B7",
+    "lastKnownWriteTime" : 1524755347,
+    "last_content_update" : 1524755347027,
+    "path" : "~/projects/quant-clustering/Lecture20_ClusterAnalysis.Rpres",
+    "project_path" : "Lecture20_ClusterAnalysis.Rpres",
+    "properties" : {
+        "cursorPosition" : "34,40",
+        "scrollLine" : "14"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_presentation"
+}
