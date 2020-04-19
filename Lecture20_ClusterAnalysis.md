@@ -5,7 +5,7 @@ width: 1600
 height: 1000
 
 GEOG 4023/5023 - Quantitative Methods  
-Spring 2018
+Spring 2020
 
 <style>
 .small-code pre code {
@@ -51,7 +51,7 @@ Geographic Cluster Analysis
 ===
 - Cluster analysis joins areas that are close together in “attribute space".
 - We might want to add a spatial constraint to this process.
-- Cluster analysis with a spatial constraint is sometimes called regionalization.
+- Cluster analysis with a spatial constraint is sometimes called **regionalization**.
 
 Regionalization Example
 ===
@@ -79,7 +79,7 @@ Clusters in Attribute Space
 
 - Clusters are sometimes visually obvious in high-density regions of the "attribute space".
 - High-density regions = lots of mutual nearest-neighbors.
-- We can also describe each cluster's members as being closer to an "exemplar" or "centroid" than any other. 
+- We can also describe each cluster's members as being closer to a "central" or "exemplary" observation than any other. 
 
 ***
 
@@ -90,7 +90,7 @@ Clustering Around Centroids: K-Means
 
 1. Randomly place *k* number of points (centroids) in the attribute space. 
 2. Each dot (observation) is assigned to the nearest centroid.
-3. Centroid is recalculated as the mean of the points assigned to it. 
+3. Centroid is recalculated as the mean center of the points assigned to it. 
 4. Repeat steps 2 - 3 until "convergence" (centroids stop moving).
 
 ***
@@ -112,9 +112,9 @@ clust_dat = den@data[,clust_vars]
 ## standardize (z-score) cluster inputs
 clust_dat_z = scale(clust_dat)
 
-## perform clustering
+## perform k-means clustering and extract group labels
 set.seed(909)
-kmclust = kmeans(clust_dat_z, centers = 7)$cluster # perform k-means and extract group labels
+kmclust = kmeans(clust_dat_z, centers = 7)$cluster 
 ```
 
 ***
@@ -125,8 +125,9 @@ Clustering by (Dis)similarity
 ===
 - A **dissimilarity matrix** is like a "mileage chart" for our data.
 - An **affinity matrix** is like inverse of a mileage chart (i.e. measuring _proximity_ by subtracting every distance from the max distance).
-- Both measures support different clustering tasks.
-  - e.g. hierarchical vs. nearest-neighbors clustering
+- The choice of dissimilarity vs. affinity depends on the clustering method.
+  - Some methods work to _distinguish features_ in the data (dissimilarity). 
+  - Other methods work to find _mutual similarities_ (affinity).  
 
 *** 
 
@@ -145,7 +146,7 @@ Hierarchical Clustering
   - The "leaves" describe individual observations.
   - The "stems" describe more specific clusters.
   - The "branches" describe more general clusters.
-- Clusters are recovered by "cutting" the dendrogram at a desired `k` or height. 
+- Clusters are found by "cutting" the dendrogram at a desired height of $k$. 
   
 ***
 ![plot of chunk unnamed-chunk-10](figs/WPGMA_Dendrogram_5S_data.svg)
@@ -159,6 +160,10 @@ Hierarchical Clustering: Linking/Sorting Strategies
   - **Average linkage** (centroid)
 - Variance-based: **Ward's Method**
   - Each merge minimizes the "error sum of squares" (ESS), a measure of within-cluster dissimilarity.
+  
+***
+![plot of chunk unnamed-chunk-11](figs/WPGMA_Dendrogram_5S_data.svg)
+
   
 A Dendrogram of Denver Tracts
 ===
@@ -182,11 +187,12 @@ dend = hclust(d = d, method = 'ward.D2')
 A Dendrogram of Denver Tracts
 ===
 <center>
-![plot of chunk unnamed-chunk-12](Lecture20_ClusterAnalysis-figure/unnamed-chunk-12-1.png)
+![plot of chunk unnamed-chunk-13](Lecture20_ClusterAnalysis-figure/unnamed-chunk-13-1.png)
 </center>
 
-Finding a Suitable k 
+Finding a Suitable k
 ===
+- We still need to identify a suitable number of clusters $k$ at which to cut the dendrogram.
 - Clusters should be **internally consistent** and **well separated**.
 - Often useful to consider variance-based and separation-based criteria.
 - Can iterate *k* groups and measure each of these criteria to find a "best" solution.
@@ -194,7 +200,7 @@ Finding a Suitable k
 Finding a Suitable k: Variance-Based Criteria
 ===
 <center>
-$$GOF = \frac{BSS}{TSS}$$
+$$GVF = \frac{BSS}{TSS}$$
 
 where 
 
@@ -203,7 +209,7 @@ $$TSS = BSS + WSS$$
 
 ***
 
-Sometimes called **Goodness of Variance Fit (GOF)**.
+Sometimes called **Goodness of Variance Fit (GVF)**.
 - **Total Sum of Squares (TSS)**: sum of squared distances from data centroid
 - **Between Sum of Squares (BSS)**: sum of squared distances between all group centroids and the data centroid
 - **Within Sum of Squares (WSS)**: sum of squared distances between all group members and their centroid
@@ -211,7 +217,7 @@ Sometimes called **Goodness of Variance Fit (GOF)**.
 Finding a Suitable k: Variance-Based Criteria
 ===
 <center>
-$$GOF = \frac{BSS}{TSS}$$
+$$GVF = \frac{BSS}{TSS}$$
 
 where 
 
@@ -229,7 +235,7 @@ Look familiar?
 
 Finding a Suitable k: Separation-Based Criteria
 ===
-- Clusters should be _well separated_: they should inhabit their own "high density" portions of the attribute space.
+- Clusters should be _well separated_: cases should be grouped _with others like them_ and _apart from those unlike them_.
 - Information provided by each cluster should be distinct, and shared as little as possible with other clusters.
 - **Average Silhouette Width:** to what degree do clusters overlap?
   - 0 = high overlap
@@ -252,10 +258,10 @@ Selecting k for Denver Tracts
 krange = 3:10
 
 # goodness of variance fit
-gof = sapply(krange, function(k){
+gvf = sapply(krange, function(k){
   
   kclust = cutree(dend, k)
-  fastClusterGOF(dat = clust_dat, clust = kclust)
+  fastClusterGVF(dat = clust_dat, clust = kclust)
   
 })
 
@@ -272,14 +278,14 @@ Selecting k for Denver Tracts
 ===
 
 <center>
-![plot of chunk unnamed-chunk-14](Lecture20_ClusterAnalysis-figure/unnamed-chunk-14-1.png)
+![plot of chunk unnamed-chunk-15](Lecture20_ClusterAnalysis-figure/unnamed-chunk-15-1.png)
 </center>
 
 ***
 
 <left>
 
-|  k|  gof|  sil|
+|  k|  gvf|  sil|
 |--:|----:|----:|
 |  3| 0.25| 0.15|
 |  4| 0.25| 0.15|
@@ -291,78 +297,140 @@ Selecting k for Denver Tracts
 | 10| 0.30| 0.13|
 </left>
 
-Map the Final Solution
+Map the Clusters
 ===
-<center>
 
 ```r
-## cut dendrogram at best k and assign it to our sf object
+## cut dendrogram at best k
 best_k = 7
-den_map['cluster'] = factor(cutree(dend, best_k))
 
-## plot the map
-plot(den_map['cluster'],main = paste('Denver Tracts 2012: k =',best_k,'clusters'))
+## assign it to the map data
+den_map['cluster'] = factor(cutree(dend, best_k))
 ```
 
-![plot of chunk unnamed-chunk-16](Lecture20_ClusterAnalysis-figure/unnamed-chunk-16-1.png)
-</center>
-
-Interrogating the Clusters
-===
-- How well do the clusters match with prior expectations of data under analysis?
-  - e.g. We know "Downtown Denver" is distinct from the rest of the city.
-- How well do the clusters suit the objectives of the analysis? 
-  - e.g. Revealing different "socially vulnerable" groups.
-  
-Interrogating the Clusters
-===
-### Outcome measures or a "ground-truth" can be useful.
-- Do the clusters align well with a particular outcome?
-  - e.g. Are flood losses concentrated more heavily in one cluster than others?
-- Do the clusters match a "ground truth" well?
-  - e.g. Observations/categories from a field assessment.
-
-Comparing the Denver Tract Clusters to an Outcome Measure
-===
-<center>
-<img src="Lecture20_ClusterAnalysis-figure/unnamed-chunk-17-1.png" title="plot of chunk unnamed-chunk-17" alt="plot of chunk unnamed-chunk-17" style="display: block; margin: auto 0 auto auto;" />
+```r
+## plot the map
+plot(den_map['cluster'],main = paste('Denver Tracts 2012: k =',best_k,'clusters'), lwd = 0.1)
+```
 
 ***
 
 ![plot of chunk unnamed-chunk-18](Lecture20_ClusterAnalysis-figure/unnamed-chunk-18-1.png)
+
+Examining the Clusters
+===
+- How well do the clusters match with prior expectations of data under analysis?
+  - e.g. Tracts in Downtown Denver are probably distinct from the rest of the city.
+- How well do the clusters suit the objectives of the analysis? 
+  - e.g. Revealing different "socially vulnerable" neighborhood types.
+  
+Examining the Clusters
+===
+- **Outcome measures** or a **"ground-truth"** can be useful.
+- Do the clusters align well with a particular outcome?
+  - e.g. Are flood losses concentrated more heavily in one cluster than others?
+- Do the clusters match a "ground truth" well?
+  - e.g. prior findings from a field assessment.
+
+Comparing the Denver Tract Clusters to an Outcome Measure
+===
+<center>
+<img src="Lecture20_ClusterAnalysis-figure/unnamed-chunk-19-1.png" title="plot of chunk unnamed-chunk-19" alt="plot of chunk unnamed-chunk-19" style="display: block; margin: auto 0 auto auto;" />
+
+***
+
+![plot of chunk unnamed-chunk-20](Lecture20_ClusterAnalysis-figure/unnamed-chunk-20-1.png)
 </center>
 
 Profiling Clusters
 ===
 <center>
-An **average profile** plot tells us how far a above/below the data average a cluster is on variables of interest:  
+An **average profile** plot tells us how far a above/below the data mean a cluster is on the input variables:  
 
-![plot of chunk unnamed-chunk-19](Lecture20_ClusterAnalysis-figure/unnamed-chunk-19-1.png)
+![plot of chunk unnamed-chunk-21](Lecture20_ClusterAnalysis-figure/unnamed-chunk-21-1.png)
 </center>
 
-Side Notes: "Built-in" Selection of k
+Clustering with Principal Components Analylsis (PCA)
 ===
-### Some methods handle selection of `k` themselves...
+- PCA performs a linear transformation of the data based on covariances among the input features.
+- In the "PCA space", cases are organized around **latent constructs** (i.e., "gentrification", "hardship", "aging") represented by each PCA dimension. 
+- Clustering is performed on these latent constructs rather than directly on the input features.
+
+PCA for Denver Tracts
+===
+![plot of chunk unnamed-chunk-22](Lecture20_ClusterAnalysis-figure/unnamed-chunk-22-1.png)
+***
+- **Dimension 1: Social Deprivation** Negatives: Above Poverty and Homeowners; Positives: Below Poverty and Renters
+- **Dimension 2: Living Arragnement** Negatives: Minors -> families with kids; Positives: Adults, via race/ethnicity (minority -> White), income (below poverty -> above poverty), and housing type (Single-Family -> Multifamily). 
+
+Clustering in PCA Space
+===
+1. Extract PCA scores (projections of the Denver tracts). 
+2. Compute Euclidean distances on the scaled PCA scores.
+3. Perform Ward Hierarchical Clustering using $k$ = 7 clusters again (for comparison's sake).
+
+***
+
+```r
+## extract PCA scores (projections of each case)
+pca.scores <- pca$ind$coord %>% 
+              scale %>% 
+              data.frame
+
+## cluster using Ward's method
+clust_pca <- pca.scores %>% 
+             dist %>% 
+             hclust(method = 'ward.D2') %>% 
+             cutree(k = 7) %>% 
+             factor # for plotting
+```
+
+Clustering in PCA Space
+===
+
+
+<center>
+![plot of chunk unnamed-chunk-25](Lecture20_ClusterAnalysis-figure/unnamed-chunk-25-1.png)
+</center>
+
+To PC or not to PC?
+===
+- When clustering, **use PCA with caution!**
+- PCA is useful to develop a "high level" understanding of the data...
+- ...but the PCA scores can also oversimplify relationships among places.  
+
+More Clustering Methods
+===
+### Some methods handle selection of $k$ themselves...
   - **Mutual nearest-neighbors** (Community Detection)
-  - **Threshold distance neighbors** (DBSCAN)
-  - **Mutual similarity to an exemplar** (Affinity Propagation) 
+  - **Radius nearest-neighbors/density** (DBSCAN)
+  - **Around _Exemplars_** (Affinity Propagation) 
   
-_Tradeoff_: Sometimes these methods generate a lot of "singletons" or noise.
+_Tradeoff_: Sometimes these methods generate a lot of unclassified observations or "noise".
 
 
-Side Notes: Clustering Categorical Data
+More Clustering Methods
 ===
-- Useful for grouping e.g. survey responses.
-- Uses "model-based" clustering techniques like **Latent Class Analysis** (LCA).
-- Model parameters are determined using criteria similar to logistic regression (i.e. maximum likelihood).
-- Information-theoretic criteria (i.e. AIC, BIC) are used to find a suitable `k`.
+### What if I have categorical data?
+- Use **Model-Based** clustering techniques like **Latent Class Analysis (LCA)**!
+- Model parameters are determined using maximum likelihood (similar to GLMs).
+- Information-theoretic criteria (i.e. AIC, BIC) are used to find a suitable $k$.
+
+More Data Reduction Techniques
+===
+- **Multidimensional Scaling (MDS)** for _dissimilarities_.
+- **Graph Decomposition (Spectral Analysis)** for _affinities_ or _nearest neighbors_.
+- **Homogeneity Analysis/MCA** for _categorical data_.
 
 Conclusion
 ===
-- Cluster analysis provides geographers insight into latent conditions and processes in place.
-- However, there is no "one size fits all" view of these phenomena.
-- Clustering design depends on the _objectives_ of the research (i.e. knowledge discovery vs. confirmatory analysis).
-- Careful attention should be paid to: 
+- Cluster analysis is super flexible!
+- There are many different ways to find groups in data (attribute and relational spaces, dissimilarities, hierarchies...)
+- Clustering benefits a wide variety of research objectives.
+
+#### When carrying out cluster analysis, **plan carefully** around your research objectives!
+
+- Always keep in mind:
   - Variable selection
   - Comparing cases
   - Clustering method

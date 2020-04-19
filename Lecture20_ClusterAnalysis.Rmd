@@ -11,7 +11,7 @@ library(RColorBrewer)
 library(ggplot2)
 library(reshape2)
 library(knitr)
-source('fastClusterGOF.R') # custom goodness of fit measure
+source('fastClusterGVF.R') # custom goodness of fit measure
 
 ## load example data - Denver census tracts in 2012
 den = readOGR(getwd(), 'denver12', verbose = F)
@@ -236,7 +236,7 @@ plot(dend)
 Finding a Suitable k: Variance-Based Criteria
 ===
 <center>
-$$GOF = \frac{BSS}{TSS}$$
+$$GVF = \frac{BSS}{TSS}$$
 
 where 
 
@@ -245,7 +245,7 @@ $$TSS = BSS + WSS$$
 
 ***
 
-Sometimes called **Goodness of Variance Fit (GOF)**.
+Sometimes called **Goodness of Variance Fit (GVF)**.
 - **Total Sum of Squares (TSS)**: sum of squared distances from data centroid
 - **Between Sum of Squares (BSS)**: sum of squared distances between all group centroids and the data centroid
 - **Within Sum of Squares (WSS)**: sum of squared distances between all group members and their centroid
@@ -253,7 +253,7 @@ Sometimes called **Goodness of Variance Fit (GOF)**.
 Finding a Suitable k: Variance-Based Criteria
 ===
 <center>
-$$GOF = \frac{BSS}{TSS}$$
+$$GVF = \frac{BSS}{TSS}$$
 
 where 
 
@@ -293,10 +293,10 @@ Look familiar?
 krange = 3:10
 
 # goodness of variance fit
-gof = sapply(krange, function(k){
+gvf = sapply(krange, function(k){
   
   kclust = cutree(dend, k)
-  fastClusterGOF(dat = clust_dat, clust = kclust)
+  fastClusterGVF(dat = clust_dat, clust = kclust)
   
 })
 
@@ -315,9 +315,9 @@ sil = sapply(krange, function(k){
 <center>
 ```{r, fig.width = 12}
 ## output diagnostics 
-cl_diag = cbind(k = krange, gof = gof, sil = sil)
+cl_diag = cbind(k = krange, gvf = gvf, sil = sil)
 par(mfrow=c(1,2))
-plot(gof ~ k, data = cl_diag, type='l', main = 'Goodness of Variance Fit')
+plot(gvf ~ k, data = cl_diag, type='l', main = 'Goodness of Variance Fit')
 plot(sil ~ k, data = cl_diag, type='l', main = 'Average Silhouette Width')
 ```
 </center>
@@ -343,14 +343,14 @@ plot(den_map['cluster'],main = paste('Denver Tracts 2012: k =',best_k,'clusters'
 ```
 </center>
 
-# Interrogating the Clusters
+# Examining the Clusters
 
 - How well do the clusters match with prior expectations of data under analysis?
   - e.g. We know "Downtown Denver" is distinct from the rest of the city.
 - How well do the clusters suit the objectives of the analysis? 
   - e.g. Revealing different "socially vulnerable" groups.
   
-# Interrogating the Clusters
+# Examining the Clusters
 
 ### Outcome measures or a "ground-truth" can be useful.
 - Do the clusters align well with a particular outcome?
@@ -419,7 +419,7 @@ ggplot(avp_melt, aes(x = variable, y = value)) +
   - **Threshold distance neighbors** (DBSCAN)
   - **Mutual similarity to an exemplar** (Affinity Propagation) 
   
-_Tradeoff_: Sometimes these methods generate a lot of "singletons" or noise.
+_Tradeoff_: Sometimes these methods generate a lot of "noise" (i.e, one-member clusters).
 
 
 # Side Notes: Clustering Categorical Data
@@ -432,7 +432,6 @@ _Tradeoff_: Sometimes these methods generate a lot of "singletons" or noise.
 # Conclusion
 
 - Cluster analysis provides geographers insight into latent conditions and processes in place.
-- However, there is no "one size fits all" view of these phenomena.
 - Clustering design depends on the _objectives_ of the research (i.e. knowledge discovery vs. confirmatory analysis).
 - Careful attention should be paid to: 
   - Variable selection
