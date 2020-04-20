@@ -62,17 +62,11 @@ Regionalization Example
 
 Space-Time Clustering
 ===
-<center>
 We can also use cluster analysis to describe how places change over time: 
-![plot of chunk unnamed-chunk-3](figs/02_transitions.png)
-
+<center>
+![plot of chunk unnamed-chunk-3](figs/county-clusters-log.png)
 </center>
-
-Space-Time Clustering
-===
-<center>
-We can also use cluster analysis to describe how places change over time: 
-![plot of chunk unnamed-chunk-4](figs/03_processes.png)
+<font size="4"><center>https://github.com/jvtcl/covid19-co</center></font>
 </center>
 
 ===
@@ -92,7 +86,7 @@ Clusters in Attribute Space
 
 ***
 
-![plot of chunk unnamed-chunk-5](Lecture20_ClusterAnalysis-figure/unnamed-chunk-5-1.png)
+![plot of chunk unnamed-chunk-4](Lecture20_ClusterAnalysis-figure/unnamed-chunk-4-1.png)
 
 Clustering Around Centroids: K-Means
 ===
@@ -104,7 +98,7 @@ Clustering Around Centroids: K-Means
 
 ***
 
-<img src="figs/Kmeans_animation.gif" title="plot of chunk unnamed-chunk-6" alt="plot of chunk unnamed-chunk-6" width="50%" />
+<img src="figs/Kmeans_animation.gif" title="plot of chunk unnamed-chunk-5" alt="plot of chunk unnamed-chunk-5" width="50%" />
 
 K-Means Example: Denver Census Tracts
 ===
@@ -132,7 +126,7 @@ kmclust <- factor(den_clust$cluster)
 
 ***
 
-![plot of chunk unnamed-chunk-9](Lecture20_ClusterAnalysis-figure/unnamed-chunk-9-1.png)
+![plot of chunk unnamed-chunk-8](Lecture20_ClusterAnalysis-figure/unnamed-chunk-8-1.png)
 
 ===
 <center>
@@ -149,7 +143,7 @@ Clustering by (Dis)similarity
 
 *** 
 
-![plot of chunk unnamed-chunk-10](figs/dist_ex.png)
+![plot of chunk unnamed-chunk-9](figs/dist_ex.png)
 
 Clustering by (Dis)similarity
 ===
@@ -159,7 +153,7 @@ Clustering by (Dis)similarity
 
 *** 
 
-![plot of chunk unnamed-chunk-11](figs/dist_ex.png)
+![plot of chunk unnamed-chunk-10](figs/dist_ex.png)
 
 
 Clustering by (Dis)similarity
@@ -178,7 +172,7 @@ Hierarchical Clustering
 - Clusters are found by "cutting" the dendrogram at a desired height of $k$. 
   
 ***
-![plot of chunk unnamed-chunk-12](figs/WPGMA_Dendrogram_5S_data.svg)
+![plot of chunk unnamed-chunk-11](figs/WPGMA_Dendrogram_5S_data.svg)
 
 
 Hierarchical Clustering: Linking/Sorting Strategies
@@ -191,7 +185,7 @@ Hierarchical Clustering: Linking/Sorting Strategies
   - Each merge minimizes the "error sum of squares" (ESS), a measure of within-cluster dissimilarity.
   
 ***
-![plot of chunk unnamed-chunk-13](figs/WPGMA_Dendrogram_5S_data.svg)
+![plot of chunk unnamed-chunk-12](figs/WPGMA_Dendrogram_5S_data.svg)
 
   
 A Dendrogram of Denver Tracts
@@ -217,7 +211,7 @@ dend <- hclust(d = d, method = 'ward.D2')
 A Dendrogram of Denver Tracts
 ===
 <center>
-![plot of chunk unnamed-chunk-15](Lecture20_ClusterAnalysis-figure/unnamed-chunk-15-1.png)
+![plot of chunk unnamed-chunk-14](Lecture20_ClusterAnalysis-figure/unnamed-chunk-14-1.png)
 </center>
 
 Finding a Suitable k
@@ -316,7 +310,7 @@ Selecting k for Denver Tracts
 ===
 
 <center>
-![plot of chunk unnamed-chunk-17](Lecture20_ClusterAnalysis-figure/unnamed-chunk-17-1.png)
+![plot of chunk unnamed-chunk-16](Lecture20_ClusterAnalysis-figure/unnamed-chunk-16-1.png)
 </center>
 
 ***
@@ -356,7 +350,7 @@ plot(den_map['cluster'],main = paste('Denver Tracts 2012: k =',best_k,'clusters'
 
 ***
 
-![plot of chunk unnamed-chunk-20](Lecture20_ClusterAnalysis-figure/unnamed-chunk-20-1.png)
+![plot of chunk unnamed-chunk-19](Lecture20_ClusterAnalysis-figure/unnamed-chunk-19-1.png)
 
 Examining the Clusters
 ===
@@ -378,11 +372,11 @@ Examining the Clusters
 Comparing the Denver Tract Clusters to an External Measure
 ===
 <center>
-<img src="Lecture20_ClusterAnalysis-figure/unnamed-chunk-21-1.png" title="plot of chunk unnamed-chunk-21" alt="plot of chunk unnamed-chunk-21" style="display: block; margin: auto 0 auto auto;" />
+<img src="Lecture20_ClusterAnalysis-figure/unnamed-chunk-20-1.png" title="plot of chunk unnamed-chunk-20" alt="plot of chunk unnamed-chunk-20" style="display: block; margin: auto 0 auto auto;" />
 
 ***
 
-![plot of chunk unnamed-chunk-22](Lecture20_ClusterAnalysis-figure/unnamed-chunk-22-1.png)
+![plot of chunk unnamed-chunk-21](Lecture20_ClusterAnalysis-figure/unnamed-chunk-21-1.png)
 </center>
 
 Profiling Clusters
@@ -390,7 +384,7 @@ Profiling Clusters
 <center>
 An **average profile** plot tells us how far above/below the data mean a cluster is on the input variables:  
 
-![plot of chunk unnamed-chunk-23](Lecture20_ClusterAnalysis-figure/unnamed-chunk-23-1.png)
+![plot of chunk unnamed-chunk-22](Lecture20_ClusterAnalysis-figure/unnamed-chunk-22-1.png)
 </center>
 
 ===
@@ -427,7 +421,7 @@ pca <- PCA(pca_in,
 
 PCA for Denver Tracts
 ===
-![plot of chunk unnamed-chunk-25](Lecture20_ClusterAnalysis-figure/unnamed-chunk-25-1.png)
+![plot of chunk unnamed-chunk-24](Lecture20_ClusterAnalysis-figure/unnamed-chunk-24-1.png)
 ***
 - **Dimension 1: Socioeconomic Status** 
 Above Poverty/Homeowners -> Below Poverty/Renters
@@ -436,11 +430,11 @@ via Race/Ethnicity, SES, Housing Density.
 
 PCA for Denver Tracts
 ===
-![plot of chunk unnamed-chunk-26](Lecture20_ClusterAnalysis-figure/unnamed-chunk-26-1.png)
+![plot of chunk unnamed-chunk-25](Lecture20_ClusterAnalysis-figure/unnamed-chunk-25-1.png)
 
 ***
 
-![plot of chunk unnamed-chunk-27](Lecture20_ClusterAnalysis-figure/unnamed-chunk-27-1.png)
+![plot of chunk unnamed-chunk-26](Lecture20_ClusterAnalysis-figure/unnamed-chunk-26-1.png)
 
 
 Clustering in PCA Space
@@ -470,11 +464,11 @@ Clustering in PCA Space
 ===
 
 
-![plot of chunk unnamed-chunk-30](Lecture20_ClusterAnalysis-figure/unnamed-chunk-30-1.png)
+![plot of chunk unnamed-chunk-29](Lecture20_ClusterAnalysis-figure/unnamed-chunk-29-1.png)
 
 ***
 
-![plot of chunk unnamed-chunk-31](Lecture20_ClusterAnalysis-figure/unnamed-chunk-31-1.png)
+![plot of chunk unnamed-chunk-30](Lecture20_ClusterAnalysis-figure/unnamed-chunk-30-1.png)
 
 
 To PC or not to PC?

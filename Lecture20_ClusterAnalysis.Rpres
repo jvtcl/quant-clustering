@@ -80,21 +80,13 @@ knitr::include_graphics('figs/ecoregions.png')
 
 Space-Time Clustering
 ===
-<center>
 We can also use cluster analysis to describe how places change over time: 
+<center>
 ```{r, echo = FALSE}
-knitr::include_graphics('figs/02_transitions.png')
+knitr::include_graphics('figs/county-clusters-log.png')
 ```
-
 </center>
-
-Space-Time Clustering
-===
-<center>
-We can also use cluster analysis to describe how places change over time: 
-```{r, echo = FALSE}
-knitr::include_graphics('figs/03_processes.png')
-```
+<font size="4"><center>https://github.com/jvtcl/covid19-co</center></font>
 </center>
 
 ===
