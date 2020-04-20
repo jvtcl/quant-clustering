@@ -40,4 +40,21 @@ nbh_lookup=nbh_lookup[match(trt@data$GEOID,nbh_lookup$GEOID),]
 trt@data = join(nbh_lookup, trt@data)
 names(trt@data)[2] = 'Neighborhood'
 
-writeOGR(trt,dsn=getwd(),layer='denver12',driver='ESRI Shapefile',overwrite_layer = T)
+## assign unique neighborhood IDs
+trtx <- trt@data[,c('GEOID', 'Neighborhood')]
+trtx <- split(trtx, trtx$Neighborhood)
+for(i in 1:length(trtx)){
+  if(nrow(trtx[[i]]) > 1){
+    trtx[[i]]$Neighborhood <- paste(trtx[[i]]$Neighborhood, 
+                               toupper(letters[1:nrow(trtx[[i]])]))  
+  }
+}
+trtx <- do.call(rbind, trtx)
+
+trt@data <- data.frame(id.nbh = trtx$Neighborhood[match(trt$GEOID, trtx$GEOID)],
+                  trt@data,
+                  stringsAsFactors = F)
+
+## write outputs
+# writeOGR(trt,dsn=getwd(),layer='denver12',driver='ESRI Shapefile',overwrite_layer = T)
+writeOGR(trt,dsn=getwd(),layer='denver12',driver='GeoJSON',overwrite_layer = T)

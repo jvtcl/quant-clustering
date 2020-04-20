@@ -1,8 +1,9 @@
-Lecture 20 - Cluster Analysis
+Cluster Analysis
 ========================================================
 autosize: true
 width: 1600
 height: 1000
+Guest Lecturer: Joe Tuccillo
 
 GEOG 4023/5023 - Quantitative Methods  
 Spring 2020
@@ -22,7 +23,7 @@ library(ggplot2)
 library(reshape2)
 library(knitr)
 library(FactoMineR)
-library(cowplot)
+# library(cowplot)
 source('fastClusterGVF.R') # custom goodness of fit measure
 
 ## load example data - Denver census tracts in 2012
@@ -142,10 +143,15 @@ knitr::include_graphics('figs/Kmeans_animation.gif')
 K-Means Example on "Real World" Data
 ===
 
+```{r, eval = F, include = F}
+# run this chunk to display the variable descriptions
+View(read.csv('Denver_Variables.csv'))
+```
+
 ```{r}
 ## remove geographic identifiers, x/y coords, 
 ## and test variable (health insurance coverage) from cluster inputs
-clust_vars = names(den)[!names(den) %in% c('GEOID', 'Nghbrhd', 'INTPTLA', 'INTPTLO', 'Hlth_Un', 'Hlth_In')]
+clust_vars = names(den)[!names(den) %in% c('GEOID', 'Nghbrhd', 'id_nbh', 'INTPTLA', 'INTPTLO', 'Hlth_Un', 'Hlth_In')]
 
 ## generate clustering input dataframe
 clust_dat = den@data[,clust_vars]
@@ -170,7 +176,16 @@ plot(den_map['kmeans_cluster'],main = paste('Denver Tracts 2012: k-means with k=
 Clustering by (Dis)similarity
 ===
 - A **dissimilarity matrix** is like a "mileage chart" for our data.
-- An **affinity matrix** is like inverse of a mileage chart (i.e. measuring _proximity_ by subtracting every distance from the max distance).
+- An **affinity matrix** is like the inverse of a mileage chart (proximity, nearest neighbors).
+
+*** 
+
+```{r, echo = FALSE}
+knitr::include_graphics('figs/dist_ex.png')
+```
+
+Clustering by (Dis)similarity
+===
 - The choice of dissimilarity vs. affinity depends on the clustering method.
   - Some methods work to _distinguish features_ in the data (dissimilarity). 
   - Other methods work to find _mutual similarities_ (affinity).  
@@ -180,6 +195,7 @@ Clustering by (Dis)similarity
 ```{r, echo = FALSE}
 knitr::include_graphics('figs/dist_ex.png')
 ```
+
 
 Clustering by (Dis)similarity
 ===
@@ -226,7 +242,7 @@ A Dendrogram of Denver Tracts
 ***
 ```{r}
 ## add neighborhood ids to rownames for readability
-rownames(clust_dat_z) = den$Nghbrhd
+rownames(clust_dat_z) = den$id_nbh
 
 ## generate distance matrix
 d = dist(clust_dat_z)
@@ -281,7 +297,7 @@ $$TSS = BSS + WSS$$
 ***
 
 Look familiar? 
-- This is kind of like an R^2 diagnostic for clustering.
+- This is kind of like an R^2 statistic for clustering.
 - Instead of a "line of best fit", we have cluster centroids.
 - Instead of "fitted values", we have cluster labels.
 - The "explained" part (BSS) tells us how distinct from data centroid the cluster centroids are.
@@ -289,8 +305,14 @@ Look familiar?
 
 Finding a Suitable k: Separation-Based Criteria
 ===
-- Clusters should be _well separated_: cases should be grouped _with others like them_ and _apart from those unlike them_.
-- Information provided by each cluster should be distinct, and shared as little as possible with other clusters.
+### Information provided by each cluster should be distinct, and shared as little as possible with other clusters.
+
+In other words, clusters should be **well separated**. cases should be grouped:
+  - _With_ others _like them_,
+  - _Apart from_ those _unlike them_.
+
+Finding a Suitable k: Separation-Based Criteria
+===
 - **Average Silhouette Width:** to what degree do clusters overlap?
   - 0 = high overlap
   - 1 = high separation
@@ -360,14 +382,14 @@ den_map['cluster'] = factor(cutree(dend, best_k))
 
 ```r
 ## plot the map
-plot(den_map['cluster'],main = paste('Denver Tracts 2012: k =',best_k,'clusters'), lwd = 0.1)
+plot(den_map['cluster'],main = paste('Denver Tracts 2012: k =',best_k,'clusters'))
 ```
 
 ***
 
 ```{r echo = F}
 ## plot the map
-plot(den_map['cluster'],main = paste('Denver Tracts 2012: k =',best_k,'clusters'), lwd = 0.1)
+plot(den_map['cluster'],main = paste('Denver Tracts 2012: k =',best_k,'clusters'))
 ```
 
 Examining the Clusters
@@ -379,18 +401,18 @@ Examining the Clusters
   
 Examining the Clusters
 ===
-- **Outcome measures** or a **"ground-truth"** can be useful.
+- **External measures** or a **"ground-truth"** can be useful.
 - Do the clusters align well with a particular outcome?
-  - e.g. Are flood losses concentrated more heavily in one cluster than others?
+  - e.g. Are crime events concentrated more heavily in one cluster than others?
 - Do the clusters match a "ground truth" well?
   - e.g. prior findings from a field assessment.
 
-Comparing the Denver Tract Clusters to an Outcome Measure
+Comparing the Denver Tract Clusters to an External Measure
 ===
 <center>
 ```{r, echo = FALSE, fig.align = 'right'}
 ## re-plot map
-plot(den_map['cluster'],main = paste('Denver Tracts 2012: k =',best_k,'clusters'), lwd = 0.1)
+plot(den_map['cluster'],main = paste('Denver Tracts 2012: k =',best_k,'clusters'))
 ```
 
 ***
@@ -414,7 +436,7 @@ abline(h = median(den$Hlth_Un), col = 'red')
 Profiling Clusters
 ===
 <center>
-An **average profile** plot tells us how far a above/below the data mean a cluster is on the input variables:  
+An **average profile** plot tells us how far above/below the data mean a cluster is on the input variables:  
 
 ```{r, echo = FALSE}
 ## generate average profile of a cluster
@@ -430,10 +452,12 @@ var_order = rownames(avp_melt)[order(avp_melt$value, decreasing = T)] # plot var
 avp_melt$variable = factor(rownames(avp_melt), levels = var_order) 
 cl_col = cols[which(levels(den$cluster) == cl)] # for coloring barplot
 
-ggplot(avp_melt, aes(x = variable, y = value)) + 
+ggplot(avp_melt, aes(x = variable, y = round(100 * value))) + 
   geom_bar(fill = cl_col, color = 'black', stat = 'identity') +
+  xlab('Variable') + 
+  ylab ('Percent above Denver Mean') +
   theme_bw() + 
-  theme(axis.text.x=element_text(angle=45,hjust=1)) +
+  theme(axis.text.x=element_text(angle=45,hjust=1, size = 12)) +
   ggtitle(paste('Average Profile for Cluster',cl))
 ```
 </center>
@@ -449,18 +473,34 @@ PCA for Denver Tracts
 ```{r, echo = FALSE, fig.height = 10, fig.width = 10}
 ## build the PCA inputs
 pca_in <- den@data[,c('Hlth_Un', clust_vars)] # we will impose the 'no health insurance' variable in the PCA space
-# rownames(pca_in) <- den$Nghbrhd # assign neighborhood IDs
+rownames(pca_in) <- den$id_nbh # assign neighborhood IDs
 
 # perform PCA (z-scoring handled internally)
 # for simplicity's sake, only keep the first 2 components
 pca <- PCA(pca_in, scale.unit = T, quanti.sup = 1,  ncp = 2, graph = F) 
 
 ## plot PCA loadings
-plot(pca, choix = 'var', shadowtext = T, cex = 2)
+plot(pca, choix = 'var', cex = 2)
 ```
 ***
-- **Dimension 1: Social Deprivation** Negatives: Above Poverty and Homeowners; Positives: Below Poverty and Renters
-- **Dimension 2: Living Arragnement** Negatives: Minors -> families with kids; Positives: Adults, via race/ethnicity (minority -> White), income (below poverty -> above poverty), and housing type (Single-Family -> Multifamily). 
+- **Dimension 1: Socioeconomic Status** 
+Above Poverty/Homeowners -> Below Poverty/Renters
+- **Dimension 2: Youth/Domesticity** 
+via Race/Ethnicity, SES, Housing Density.
+
+PCA for Denver Tracts
+===
+```{r, echo = FALSE, fig.height = 10, fig.width = 10}
+plot(pca, choix = 'var', cex = 1.5)
+```
+
+***
+
+```{r echo = FALSE, fig.height = 12, fig.width = 12}
+plot(pca, choix = 'ind', labels = den$id_nbh, cex = 0.7)
+```
+
+
 
 Clustering in PCA Space
 ===
@@ -490,24 +530,35 @@ Clustering in PCA Space
 den_map['clust_pca'] <- factor(clust_pca)
 
 ## make plots
-plt_pca <- plot(pca, choix = 'var', shadowtext = T, cex = 0.8) +
-  geom_point(data = pca.scores[-100,], aes(x = Dim.1, y = Dim.2, color = clust_pca[-100]), size = 5, alpha = 0.4, inherit.aes = F) + # omit Obs 100/Sun Valley (outlier)
+plt_pca <- plot(pca, choix = 'var') +
+ geom_point(data = pca.scores[-100,], # omit Obs 100/Sun Valley (outlier)
+           aes(x = Dim.1,
+               y = Dim.2,
+               color = clust_pca[-100]),
+           size = 5, alpha = 0.4,
+           inherit.aes = F) +
   scale_color_brewer(type = 'qual', palette = 'Set2') + 
   labs(color = 'Cluster')
 
 map_pca <- ggplot(data = den_map, aes(fill = clust_pca)) + 
   geom_sf(size = 0.1, color = 'black') + 
   scale_fill_brewer(type = 'qual', palette = 'Set2') +
+  ggtitle(paste('Denver Tracts 2012: k =',best_k,'clusters')) + 
   theme_void() +
-  theme(legend.position = 'none')
+  theme(legend.position = 'none',
+        plot.title = element_text(hjust = 0.5))
 ```
 
-<center>
-```{r echo = F, fig.height = 8, fig.width = 16}
-## display plots
-plot_grid(map_pca, plt_pca, nrow = 1)
+```{r echo = F, fig.height = 8, fig.width = 10}
+map_pca
 ```
-</center>
+
+***
+
+```{r echo = F, fig.height = 10, fig.width = 10}
+plt_pca
+```
+
 
 To PC or not to PC?
 ===
@@ -518,8 +569,8 @@ To PC or not to PC?
 More Clustering Methods
 ===
 ### Some methods handle selection of $k$ themselves...
-  - **Mutual nearest-neighbors** (Community Detection)
-  - **Radius nearest-neighbors/density** (DBSCAN)
+  - **Density: Mutual Neighbors** (Community Detection)
+  - **Density: Radius Neighbors** (DBSCAN)
   - **Around _Exemplars_** (Affinity Propagation) 
   
 _Tradeoff_: Sometimes these methods generate a lot of unclassified observations or "noise".
@@ -532,6 +583,11 @@ More Clustering Methods
 - Model parameters are determined using maximum likelihood (similar to GLMs).
 - Information-theoretic criteria (i.e. AIC, BIC) are used to find a suitable $k$.
 
+More Clustering Methods
+===
+- Model-based clustering techniques also allow **multiple memberships** ("fuzzy" clusters)
+- Availble for continuous data (`mclust`, `teigen`) and categorical data (`poLCA`, `bayesLCA`)
+
 More Data Reduction Techniques
 ===
 - **Multidimensional Scaling (MDS)** for _dissimilarities_.
@@ -540,14 +596,10 @@ More Data Reduction Techniques
 
 Conclusion
 ===
-- Cluster analysis is super flexible!
-- There are many different ways to find groups in data (attribute and relational spaces, dissimilarities, hierarchies...)
-- Clustering benefits a wide variety of research objectives.
+#### Clustering is super flexible! There is no "one size fits all" approach. 
 
-#### When carrying out cluster analysis, **plan carefully** around your research objectives!
-
-- Always keep in mind:
+**Always design a cluster analysis with your own research aims in mind!**
   - Variable selection
-  - Comparing cases
-  - Clustering method
-  - Interpretation
+  - Representation of data (i.e., data reduction, transformation)
+  - Clustering methods and their objectives
+  - Cluster validation/interpretation
