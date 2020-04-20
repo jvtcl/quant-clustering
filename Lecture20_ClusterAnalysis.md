@@ -75,6 +75,14 @@ We can also use cluster analysis to describe how places change over time:
 ![plot of chunk unnamed-chunk-4](figs/03_processes.png)
 </center>
 
+===
+<center>
+     
+<p style="padding: 20% 0;font-size:56px;font-weight:bold;color:#212185">Clustering Basics</p>
+
+</center>
+
+
 Clusters in Attribute Space
 ===
 
@@ -123,6 +131,14 @@ kmclust = kmeans(clust_dat_z, centers = 7)$cluster
 ***
 
 ![plot of chunk unnamed-chunk-9](Lecture20_ClusterAnalysis-figure/unnamed-chunk-9-1.png)
+
+===
+<center>
+     
+<p style="padding: 20% 0;font-size:56px;font-weight:bold;color:#212185">Clustering by (Dis)similarity</p>
+
+</center>
+
 
 Clustering by (Dis)similarity
 ===
@@ -367,6 +383,14 @@ An **average profile** plot tells us how far above/below the data mean a cluster
 ![plot of chunk unnamed-chunk-23](Lecture20_ClusterAnalysis-figure/unnamed-chunk-23-1.png)
 </center>
 
+===
+<center>
+     
+<p style="padding: 20% 0;font-size:56px;font-weight:bold;color:#212185">Clustering with Principal Components Analylsis (PCA)</p>
+
+</center>
+
+
 Clustering with Principal Components Analylsis (PCA)
 ===
 - PCA performs a linear transformation of the data based on covariances among the input features.
@@ -375,7 +399,24 @@ Clustering with Principal Components Analylsis (PCA)
 
 PCA for Denver Tracts
 ===
-![plot of chunk unnamed-chunk-24](Lecture20_ClusterAnalysis-figure/unnamed-chunk-24-1.png)
+
+```r
+## build the PCA inputs
+pca_in <- den@data[,c('Hlth_Un', clust_vars)]
+rownames(pca_in) <- den$id_nbh # assign neighborhood IDs
+
+# perform PCA 
+pca <- PCA(pca_in,
+           scale.unit = T, # z-scores handled internally
+           quanti.sup = 1, # use `no health ins.` as an external var
+           ncp = 2, # only keep first 2 principal components
+           graph = F) 
+```
+
+
+PCA for Denver Tracts
+===
+![plot of chunk unnamed-chunk-25](Lecture20_ClusterAnalysis-figure/unnamed-chunk-25-1.png)
 ***
 - **Dimension 1: Socioeconomic Status** 
 Above Poverty/Homeowners -> Below Poverty/Renters
@@ -384,12 +425,11 @@ via Race/Ethnicity, SES, Housing Density.
 
 PCA for Denver Tracts
 ===
-![plot of chunk unnamed-chunk-25](Lecture20_ClusterAnalysis-figure/unnamed-chunk-25-1.png)
+![plot of chunk unnamed-chunk-26](Lecture20_ClusterAnalysis-figure/unnamed-chunk-26-1.png)
 
 ***
 
-![plot of chunk unnamed-chunk-26](Lecture20_ClusterAnalysis-figure/unnamed-chunk-26-1.png)
-
+![plot of chunk unnamed-chunk-27](Lecture20_ClusterAnalysis-figure/unnamed-chunk-27-1.png)
 
 
 Clustering in PCA Space
@@ -418,11 +458,11 @@ Clustering in PCA Space
 ===
 
 
-![plot of chunk unnamed-chunk-29](Lecture20_ClusterAnalysis-figure/unnamed-chunk-29-1.png)
+![plot of chunk unnamed-chunk-30](Lecture20_ClusterAnalysis-figure/unnamed-chunk-30-1.png)
 
 ***
 
-![plot of chunk unnamed-chunk-30](Lecture20_ClusterAnalysis-figure/unnamed-chunk-30-1.png)
+![plot of chunk unnamed-chunk-31](Lecture20_ClusterAnalysis-figure/unnamed-chunk-31-1.png)
 
 
 To PC or not to PC?
@@ -430,6 +470,15 @@ To PC or not to PC?
 - When clustering, **use PCA with caution!**
 - PCA is useful to develop a "high level" understanding of the data...
 - ...but the PCA scores can also oversimplify relationships among places.  
+
+===
+<center>
+     
+<p style="padding: 20% 0;font-size:56px;font-weight:bold;color:#212185">More Clustering Methods</p>
+
+</center>
+
+
 
 More Clustering Methods
 ===

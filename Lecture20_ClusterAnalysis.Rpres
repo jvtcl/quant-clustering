@@ -98,6 +98,14 @@ knitr::include_graphics('figs/03_processes.png')
 ```
 </center>
 
+===
+<center>
+     
+<p style="padding: 20% 0;font-size:56px;font-weight:bold;color:#212185">Clustering Basics</p>
+
+</center>
+
+
 Clusters in Attribute Space
 ===
 
@@ -172,6 +180,14 @@ den_map = as(den,'sf')
 den_map$kmeans_cluster = factor(kmclust)
 plot(den_map['kmeans_cluster'],main = paste('Denver Tracts 2012: k-means with k=7 clusters'))
 ```
+
+===
+<center>
+     
+<p style="padding: 20% 0;font-size:56px;font-weight:bold;color:#212185">Clustering by (Dis)similarity</p>
+
+</center>
+
 
 Clustering by (Dis)similarity
 ===
@@ -462,6 +478,14 @@ ggplot(avp_melt, aes(x = variable, y = round(100 * value))) +
 ```
 </center>
 
+===
+<center>
+     
+<p style="padding: 20% 0;font-size:56px;font-weight:bold;color:#212185">Clustering with Principal Components Analylsis (PCA)</p>
+
+</center>
+
+
 Clustering with Principal Components Analylsis (PCA)
 ===
 - PCA performs a linear transformation of the data based on covariances among the input features.
@@ -470,15 +494,23 @@ Clustering with Principal Components Analylsis (PCA)
 
 PCA for Denver Tracts
 ===
-```{r, echo = FALSE, fig.height = 10, fig.width = 10}
+```{r}
 ## build the PCA inputs
-pca_in <- den@data[,c('Hlth_Un', clust_vars)] # we will impose the 'no health insurance' variable in the PCA space
+pca_in <- den@data[,c('Hlth_Un', clust_vars)]
 rownames(pca_in) <- den$id_nbh # assign neighborhood IDs
 
-# perform PCA (z-scoring handled internally)
-# for simplicity's sake, only keep the first 2 components
-pca <- PCA(pca_in, scale.unit = T, quanti.sup = 1,  ncp = 2, graph = F) 
+# perform PCA 
+pca <- PCA(pca_in,
+           scale.unit = T, # z-scores handled internally
+           quanti.sup = 1, # use `no health ins.` as an external var
+           ncp = 2, # only keep first 2 principal components
+           graph = F) 
+```
 
+
+PCA for Denver Tracts
+===
+```{r, echo = FALSE, fig.height = 10, fig.width = 10}
 ## plot PCA loadings
 plot(pca, choix = 'var', cex = 2)
 ```
@@ -499,7 +531,6 @@ plot(pca, choix = 'var', cex = 1.5)
 ```{r echo = FALSE, fig.height = 12, fig.width = 12}
 plot(pca, choix = 'ind', labels = den$id_nbh, cex = 0.7)
 ```
-
 
 
 Clustering in PCA Space
@@ -565,6 +596,15 @@ To PC or not to PC?
 - When clustering, **use PCA with caution!**
 - PCA is useful to develop a "high level" understanding of the data...
 - ...but the PCA scores can also oversimplify relationships among places.  
+
+===
+<center>
+     
+<p style="padding: 20% 0;font-size:56px;font-weight:bold;color:#212185">More Clustering Methods</p>
+
+</center>
+
+
 
 More Clustering Methods
 ===
