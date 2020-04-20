@@ -10,7 +10,7 @@ Spring 2020
 
 <style>
 .small-code pre code {
-  font-size: 1em;
+  font-size: 1.1em;
 }
 </style>
 
@@ -106,8 +106,9 @@ Clustering Around Centroids: K-Means
 
 <img src="figs/Kmeans_animation.gif" title="plot of chunk unnamed-chunk-6" alt="plot of chunk unnamed-chunk-6" width="50%" />
 
-K-Means Example on "Real World" Data
+K-Means Example: Denver Census Tracts
 ===
+type:small-code
 
 
 
@@ -115,17 +116,18 @@ K-Means Example on "Real World" Data
 ```r
 ## remove geographic identifiers, x/y coords, 
 ## and test variable (health insurance coverage) from cluster inputs
-clust_vars = names(den)[!names(den) %in% c('GEOID', 'Nghbrhd', 'id_nbh', 'INTPTLA', 'INTPTLO', 'Hlth_Un', 'Hlth_In')]
+clust_vars <- names(den)[!names(den) %in% c('GEOID', 'Nghbrhd', 'id_nbh', 'INTPTLA', 'INTPTLO', 'Hlth_Un', 'Hlth_In')]
 
 ## generate clustering input dataframe
-clust_dat = den@data[,clust_vars]
+clust_dat <- den@data[,clust_vars]
 
 ## standardize (z-score) cluster inputs
-clust_dat_z = scale(clust_dat)
+clust_dat_z <- scale(clust_dat)
 
 ## perform k-means clustering and extract group labels
 set.seed(909)
-kmclust = kmeans(clust_dat_z, centers = 7)$cluster 
+den_clust <- kmeans(clust_dat_z, centers = 7)
+kmclust <- factor(den_clust$cluster)
 ```
 
 ***
@@ -194,6 +196,7 @@ Hierarchical Clustering: Linking/Sorting Strategies
   
 A Dendrogram of Denver Tracts
 ===
+type: small-code
 - Generate a euclidean distance matrix using R's `dist` function.
 - Generate a dendrogram from the distance matrix using R's `hclust` function.
 - Use the _Ward_ linkage method (minimize within-cluster variance).
@@ -202,13 +205,13 @@ A Dendrogram of Denver Tracts
 
 ```r
 ## add neighborhood ids to rownames for readability
-rownames(clust_dat_z) = den$id_nbh
+rownames(clust_dat_z) <- den$id_nbh
 
 ## generate distance matrix
-d = dist(clust_dat_z)
+d <- dist(clust_dat_z)
 
 ## ward dendrogram
-dend = hclust(d = d, method = 'ward.D2')
+dend <- hclust(d = d, method = 'ward.D2')
 ```
 
 A Dendrogram of Denver Tracts
@@ -277,6 +280,8 @@ Finding a Suitable k: Separation-Based Criteria
 
 Selecting k for Denver Tracts
 ===
+type: small-code
+
 1. Specify a desired range of cluster numbers (here $k=3...10$).
 2. Cut the dendogram at each `k` and...
   - Compute variance-based measure (Goodness of Variance Fit).
@@ -288,10 +293,10 @@ Selecting k for Denver Tracts
 
 ```r
 ## Specify a range of cluster numbers
-krange = 3:10
+krange <- 3:10
 
 # goodness of variance fit
-gvf = sapply(krange, function(k){
+gvf <- sapply(krange, function(k){
   
   kclust = cutree(dend, k)
   fastClusterGVF(dat = clust_dat, clust = kclust)
@@ -299,7 +304,7 @@ gvf = sapply(krange, function(k){
 })
 
 # average silhouette width
-sil = sapply(krange, function(k){
+sil <- sapply(krange, function(k){
   
   kclust = cutree(dend, k)
   mean(silhouette(x = kclust, dist = d)[,3])
@@ -332,13 +337,16 @@ Selecting k for Denver Tracts
 
 Map the Clusters
 ===
+type: small-code
 
 ```r
 ## cut dendrogram at best k
-best_k = 7
+best_k <- 7
 
 ## assign it to the map data
-den_map['cluster'] = factor(cutree(dend, best_k))
+den_map['cluster'] <- dend %>% 
+                      cutree(best_k) %>% 
+                      factor
 ```
 
 ```r
@@ -352,14 +360,16 @@ plot(den_map['cluster'],main = paste('Denver Tracts 2012: k =',best_k,'clusters'
 
 Examining the Clusters
 ===
-- How well do the clusters match with prior expectations of data under analysis?
+#### A-Priori Knowledge
+- How well do the clusters match with prior understanding of the problem of interest?
   - e.g. Tracts in Downtown Denver are probably distinct from the rest of the city.
 - How well do the clusters suit the objectives of the analysis? 
-  - e.g. Revealing different "socially vulnerable" neighborhood types.
+  - e.g. Revealing different types of "social vulnerability" across neighborhoods.
   
 Examining the Clusters
 ===
-- **External measures** or a **"ground-truth"** can be useful.
+#### External Validation
+- **External measures** or a **"ground-truth"** can also be useful.
 - Do the clusters align well with a particular outcome?
   - e.g. Are crime events concentrated more heavily in one cluster than others?
 - Do the clusters match a "ground truth" well?
@@ -399,6 +409,8 @@ Clustering with Principal Components Analylsis (PCA)
 
 PCA for Denver Tracts
 ===
+type: small-code
+
 
 ```r
 ## build the PCA inputs
@@ -412,7 +424,6 @@ pca <- PCA(pca_in,
            ncp = 2, # only keep first 2 principal components
            graph = F) 
 ```
-
 
 PCA for Denver Tracts
 ===
@@ -434,6 +445,7 @@ PCA for Denver Tracts
 
 Clustering in PCA Space
 ===
+type: small-code
 1. Extract PCA scores (projections of the Denver tracts). 
 2. Compute Euclidean distances on the scaled PCA scores.
 3. Perform Ward Hierarchical Clustering using $k$ = 7 clusters again (for comparison's sake).

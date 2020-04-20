@@ -10,7 +10,7 @@ Spring 2020
 
 <style>
 .small-code pre code {
-  font-size: 1em;
+  font-size: 1.1em;
 }
 </style>
 
@@ -23,12 +23,11 @@ library(ggplot2)
 library(reshape2)
 library(knitr)
 library(FactoMineR)
-# library(cowplot)
 source('fastClusterGVF.R') # custom goodness of fit measure
 
 ## load example data - Denver census tracts in 2012
-den = readOGR(getwd(), 'denver12', verbose = F)
-den = den[den$GEOID!='08031980100',] # remove unpopulated tract
+den <- readOGR(getwd(), 'denver12', verbose = F)
+den <- den[den$GEOID!='08031980100',] # remove unpopulated tract
 ```
 
 Introduction
@@ -148,8 +147,9 @@ Clustering Around Centroids: K-Means
 knitr::include_graphics('figs/Kmeans_animation.gif')
 ```
 
-K-Means Example on "Real World" Data
+K-Means Example: Denver Census Tracts
 ===
+type:small-code
 
 ```{r, eval = F, include = F}
 # run this chunk to display the variable descriptions
@@ -159,24 +159,25 @@ View(read.csv('Denver_Variables.csv'))
 ```{r}
 ## remove geographic identifiers, x/y coords, 
 ## and test variable (health insurance coverage) from cluster inputs
-clust_vars = names(den)[!names(den) %in% c('GEOID', 'Nghbrhd', 'id_nbh', 'INTPTLA', 'INTPTLO', 'Hlth_Un', 'Hlth_In')]
+clust_vars <- names(den)[!names(den) %in% c('GEOID', 'Nghbrhd', 'id_nbh', 'INTPTLA', 'INTPTLO', 'Hlth_Un', 'Hlth_In')]
 
 ## generate clustering input dataframe
-clust_dat = den@data[,clust_vars]
+clust_dat <- den@data[,clust_vars]
 
 ## standardize (z-score) cluster inputs
-clust_dat_z = scale(clust_dat)
+clust_dat_z <- scale(clust_dat)
 
 ## perform k-means clustering and extract group labels
 set.seed(909)
-kmclust = kmeans(clust_dat_z, centers = 7)$cluster 
+den_clust <- kmeans(clust_dat_z, centers = 7)
+kmclust <- factor(den_clust$cluster)
 ```
 
 ***
 
 ```{r, echo = FALSE}
 ## map the clusters in physical space
-den_map = as(den,'sf')
+den_map <- as(den,'sf')
 den_map$kmeans_cluster = factor(kmclust)
 plot(den_map['kmeans_cluster'],main = paste('Denver Tracts 2012: k-means with k=7 clusters'))
 ```
@@ -251,6 +252,7 @@ knitr::include_graphics('figs/WPGMA_Dendrogram_5S_data.svg')
   
 A Dendrogram of Denver Tracts
 ===
+type: small-code
 - Generate a euclidean distance matrix using R's `dist` function.
 - Generate a dendrogram from the distance matrix using R's `hclust` function.
 - Use the _Ward_ linkage method (minimize within-cluster variance).
@@ -258,13 +260,13 @@ A Dendrogram of Denver Tracts
 ***
 ```{r}
 ## add neighborhood ids to rownames for readability
-rownames(clust_dat_z) = den$id_nbh
+rownames(clust_dat_z) <- den$id_nbh
 
 ## generate distance matrix
-d = dist(clust_dat_z)
+d <- dist(clust_dat_z)
 
 ## ward dendrogram
-dend = hclust(d = d, method = 'ward.D2')
+dend <- hclust(d = d, method = 'ward.D2')
 ```
 
 A Dendrogram of Denver Tracts
@@ -336,6 +338,8 @@ Finding a Suitable k: Separation-Based Criteria
 
 Selecting k for Denver Tracts
 ===
+type: small-code
+
 1. Specify a desired range of cluster numbers (here $k=3...10$).
 2. Cut the dendogram at each `k` and...
   - Compute variance-based measure (Goodness of Variance Fit).
@@ -346,10 +350,10 @@ Selecting k for Denver Tracts
 
 ```{r}
 ## Specify a range of cluster numbers
-krange = 3:10
+krange <- 3:10
 
 # goodness of variance fit
-gvf = sapply(krange, function(k){
+gvf <- sapply(krange, function(k){
   
   kclust = cutree(dend, k)
   fastClusterGVF(dat = clust_dat, clust = kclust)
@@ -357,7 +361,7 @@ gvf = sapply(krange, function(k){
 })
 
 # average silhouette width
-sil = sapply(krange, function(k){
+sil <- sapply(krange, function(k){
   
   kclust = cutree(dend, k)
   mean(silhouette(x = kclust, dist = d)[,3])
@@ -371,7 +375,7 @@ Selecting k for Denver Tracts
 <center>
 ```{r, echo = FALSE, fig.width = 12}
 ## output diagnostics 
-cl_diag = cbind(k = krange, gvf = gvf, sil = sil)
+cl_diag <- cbind(k = krange, gvf = gvf, sil = sil)
 par(mfrow=c(1,2))
 plot(gvf ~ k, data = cl_diag, type='l', main = 'Goodness of Variance Fit')
 plot(sil ~ k, data = cl_diag, type='l', main = 'Average Silhouette Width')
@@ -388,12 +392,15 @@ kable(round(data.frame(cl_diag), 2))
 
 Map the Clusters
 ===
+type: small-code
 ```{r}
 ## cut dendrogram at best k
-best_k = 7
+best_k <- 7
 
 ## assign it to the map data
-den_map['cluster'] = factor(cutree(dend, best_k))
+den_map['cluster'] <- dend %>% 
+                      cutree(best_k) %>% 
+                      factor
 ```
 
 ```r
@@ -405,19 +412,22 @@ plot(den_map['cluster'],main = paste('Denver Tracts 2012: k =',best_k,'clusters'
 
 ```{r echo = F}
 ## plot the map
-plot(den_map['cluster'],main = paste('Denver Tracts 2012: k =',best_k,'clusters'))
+plot(den_map['cluster'],
+     main = paste('Denver Tracts 2012: k =', best_k, 'clusters'))
 ```
 
 Examining the Clusters
 ===
-- How well do the clusters match with prior expectations of data under analysis?
+#### A-Priori Knowledge
+- How well do the clusters match with prior understanding of the problem of interest?
   - e.g. Tracts in Downtown Denver are probably distinct from the rest of the city.
 - How well do the clusters suit the objectives of the analysis? 
-  - e.g. Revealing different "socially vulnerable" neighborhood types.
+  - e.g. Revealing different types of "social vulnerability" across neighborhoods.
   
 Examining the Clusters
 ===
-- **External measures** or a **"ground-truth"** can be useful.
+#### External Validation
+- **External measures** or a **"ground-truth"** can also be useful.
 - Do the clusters align well with a particular outcome?
   - e.g. Are crime events concentrated more heavily in one cluster than others?
 - Do the clusters match a "ground truth" well?
@@ -428,22 +438,25 @@ Comparing the Denver Tract Clusters to an External Measure
 <center>
 ```{r, echo = FALSE, fig.align = 'right'}
 ## re-plot map
-plot(den_map['cluster'],main = paste('Denver Tracts 2012: k =',best_k,'clusters'))
+plot(den_map['cluster'],
+     main = paste('Denver Tracts 2012: k =',
+                  best_k,
+                  'clusters'))
 ```
 
 ***
 
 ```{r, echo = FALSE, fig.aline = 'left'}
 ## assign cluster labels to full data
-den@data$cluster = factor(cutree(dend, best_k))
+den@data$cluster <- factor(cutree(dend, best_k))
 
 ## sort clusters by median of outcome variable, highest to lowest
-health_uninsured_by_cluster = with(den@data, aggregate(Hlth_Un ~ cluster, FUN = 'median'))
-health_uninsured_by_cluster = health_uninsured_by_cluster[order(health_uninsured_by_cluster$Hlth_Un, decreasing = T),]
-den$cluster = factor(den$cluster, levels = health_uninsured_by_cluster$cluster)
+health_uninsured_by_cluster <- with(den@data, aggregate(Hlth_Un ~ cluster, FUN = 'median'))
+health_uninsured_by_cluster <- health_uninsured_by_cluster[order(health_uninsured_by_cluster$Hlth_Un, decreasing = T),]
+den$cluster <- factor(den$cluster, levels = health_uninsured_by_cluster$cluster)
 
 ## plot outcome variable
-cols = brewer.pal(best_k, 'Set2')[as.numeric(levels(den$cluster))]
+cols <- brewer.pal(best_k, 'Set2')[as.numeric(levels(den$cluster))]
 with(den@data, plot(Hlth_Un ~ cluster, col = cols, main = 'Percent of Population without Health Insurance by Cluster', ylab = 'Percent Uninsured'))
 abline(h = median(den$Hlth_Un), col = 'red')
 ```
@@ -456,17 +469,17 @@ An **average profile** plot tells us how far above/below the data mean a cluster
 
 ```{r, echo = FALSE}
 ## generate average profile of a cluster
-den_cent = colMeans(clust_dat) # the data centroid
-cl = levels(den$cluster)[1] # our target cluster
-cl_cent = colMeans(clust_dat[den$cluster==cl,]) # the cluster centroid
-avp = (cl_cent - den_cent) / den_cent # difference from data mean
-avp = avp[avp > 0] # limit to variables above the Denver mean
+den_cent <- colMeans(clust_dat) # the data centroid
+cl <- levels(den$cluster)[1] # our target cluster
+cl_cent <- colMeans(clust_dat[den$cluster==cl,]) # the cluster centroid
+avp <- (cl_cent - den_cent) / den_cent # difference from data mean
+avp <- avp[avp > 0] # limit to variables above the Denver mean
 
 ## format the data for plotting
-avp_melt = melt(avp)
-var_order = rownames(avp_melt)[order(avp_melt$value, decreasing = T)] # plot vars greatest to smallest
-avp_melt$variable = factor(rownames(avp_melt), levels = var_order) 
-cl_col = cols[which(levels(den$cluster) == cl)] # for coloring barplot
+avp_melt <- melt(avp)
+var_order <- rownames(avp_melt)[order(avp_melt$value, decreasing = T)] # plot vars greatest to smallest
+avp_melt$variable <- factor(rownames(avp_melt), levels = var_order) 
+cl_col <- cols[which(levels(den$cluster) == cl)] # for coloring barplot
 
 ggplot(avp_melt, aes(x = variable, y = round(100 * value))) + 
   geom_bar(fill = cl_col, color = 'black', stat = 'identity') +
@@ -494,6 +507,8 @@ Clustering with Principal Components Analylsis (PCA)
 
 PCA for Denver Tracts
 ===
+type: small-code
+
 ```{r}
 ## build the PCA inputs
 pca_in <- den@data[,c('Hlth_Un', clust_vars)]
@@ -506,7 +521,6 @@ pca <- PCA(pca_in,
            ncp = 2, # only keep first 2 principal components
            graph = F) 
 ```
-
 
 PCA for Denver Tracts
 ===
@@ -535,6 +549,7 @@ plot(pca, choix = 'ind', labels = den$id_nbh, cex = 0.7)
 
 Clustering in PCA Space
 ===
+type: small-code
 1. Extract PCA scores (projections of the Denver tracts). 
 2. Compute Euclidean distances on the scaled PCA scores.
 3. Perform Ward Hierarchical Clustering using $k$ = 7 clusters again (for comparison's sake).
